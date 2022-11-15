@@ -9,8 +9,8 @@ module.exports = {
   sql: {
     host: '127.0.0.1',
     port: '3306',
-    user: 'root',
-    password: 'password',
+    user: 'aelf',
+    password: 'aelf',
     database: 'aelf_main_chain',
     connectionLimit: 100
   },
@@ -39,11 +39,11 @@ module.exports = {
     interval: 4000,
     concurrentQueryLimit: 5,
     // 节点的地址
-    host: 'http://192.168.199.109:8002',
+    host: 'http://127.0.0.1:8000',
     maxInsert: 20
   },
   wallet: {
-    privateKey: 'f6e512a3c259e5f9af981d7f99d245aa5bc52fe448495e0b0dd56e8406be6f71'
+    privateKey: 'feb766a83f14cbfa6885bb0fc537f290985460949c412a463ce3f92677042977'
   },
   contracts: {
     // Token合约可以通过getContractAddressByName来获取

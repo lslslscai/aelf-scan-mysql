@@ -16,6 +16,8 @@ class DBOperation extends DBBaseOperation {
     super(option);
     this.query = query;
     this.lastTime = new Date().getTime();
+    this.option = option;
+    this.firstTime = false;
   }
 
   init() {
@@ -72,6 +74,38 @@ class DBOperation extends DBBaseOperation {
       return;
     }
     const list = [];
+
+    if (this.firstTime == false) {
+      for (const blk of data.blocks) {
+        if (blk.Header.Height == 2) {
+          const res = await this.option.aelfInstance.chain.getBlock(blk.Header.PreviousBlockHash, true)
+          const txs = res.Body.Transactions
+          const listContent = []
+          for (const ts of data.txs) {
+            console.log(ts)
+            for (const tx of ts) {
+              if (tx.BlockNumber == 1)
+                listContent.push(tx.TransactionId)
+            }
+          }
+          const txList = []
+          for (const tx of txs) {
+            if (!listContent.includes(tx)) {
+              const txRes = await this.option.aelfInstance.chain.getTxResult(tx)
+              txList.push(txRes)
+            }
+          }
+          data.txs.unshift(txList)
+          res.Body.Transactions.length = 0
+          data.blocks.unshift(res);
+          this.firstTime = true;
+
+          break;
+        }
+      }
+    }
+
+
     // eslint-disable-next-line no-restricted-syntax
     for (const txs of data.txs) {
       // eslint-disable-next-line no-await-in-loop
@@ -96,13 +130,13 @@ class DBOperation extends DBBaseOperation {
     await this.query.deleteUnconfirmedData(LIBHeight);
 
     const confirmedData = {
-      blocks: blocks.filter(v => +v.Header.Height <= LIBHeight),
-      txs: txs.filter((v, i) => +blocks[i].Header.Height <= LIBHeight)
+      blocks: blocks.filter(v => v.Header.Height <= LIBHeight),
+      txs: txs.filter((v, i) => blocks[i].Header.Height <= LIBHeight)
     };
     await this.insertHeight(confirmedData, type);
     const unconfirmedData = {
-      blocks: blocks.filter(v => +v.Header.Height > LIBHeight),
-      txs: txs.filter((v, i) => +blocks[i].Header.Height > LIBHeight)
+      blocks: blocks.filter(v => v.Header.Height > LIBHeight),
+      txs: txs.filter((v, i) => blocks[i].Header.Height > LIBHeight)
     };
     await this.insertHeight(unconfirmedData, type, false);
     await this.query.setUnconfirmCounts(blocks.length, unconfirmedData.txs.reduce((acc, i) => acc.concat(i), []));

@@ -87,7 +87,7 @@ class CustomInsert {
     await this.sqlQuery.initCounts();
     const options = await this.getConfig();
     options.aelfInstance = this.aelf;
-    this.scanner = new Scanner(new DBOperation({}, this.sqlQuery), options);
+    this.scanner = new Scanner(new DBOperation(options, this.sqlQuery), options);
     try {
       await this.scanner.start();
       console.log('start loop');
